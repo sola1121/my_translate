@@ -97,7 +97,7 @@ Celery, 就像一个消费者应用, 不需要过多的配置在操作上. 他�
 
     app.conf.update(
         task_serializer="json",
-        accept_content=["json", "xml"],   # 仅接收json和xml
+        accept_content=["json", "yaml"],   # 仅接收json和yaml
         result_serializer="josn",
         timezone="Asia/Shanghai",
         enable_utc=True
