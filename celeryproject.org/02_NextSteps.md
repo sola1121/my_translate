@@ -99,4 +99,65 @@ _Queues_ 是一个worker消费的任务们的队列列表. worker能被告知消
 可以直接在命令行中用键盘Control - c 关闭. 一系列的信号被worker支持.  可看 http://docs.celeryproject.org/en/latest/userguide/workers.html#guide-workers
 
 ### In the background 在后台
-TODO: 
+
+在生产环境中, 你将想要在后台运行worker, 更多  http://docs.celeryproject.org/en/latest/userguide/daemonizing.html#daemonizing
+
+系统守护进程脚本使用celery multi 命令以在后台开始一个或多个workers
+
+    celery multi start w1 -A proj -l info
+
+重启如下
+
+    celery multi restart w1 -A proj -l info
+
+关闭如下
+
+    celery multi stop w1 -A proj -l info
+
+关闭命令是异步的所以其不会等待worker完全关闭. 你将可能想要使用stopwait命令来代替stop, stopwait将保证所有当前执行的任务在命令执行完毕前都将完全关闭.
+
+*注意* celery multi不会保存worker的启动信息, 所以你需要使用相同的命令行参数在重启工作流的时候. 只有相同pidfile(进程文件)和logfile(日志文件)参数们必须在停止时被使用.
+
+默认的, 其会创建pid和log文件在当前的目录, 以防范众多的workers在彼此之上启动, 你呗鼓励将这些文件放置在一个专用的目录中.
+
+创建相应目录, 然后在运行celery multi的时候进行指定
+
+    celery multi start w1 -A proj -l info --pidfile=/var/run/celery/%n.pid --logfile=/var/log/celery/%n%I.log
+
+更多的启动命令  http://docs.celeryproject.org/en/latest/reference/celery.bin.multi.html#module-celery.bin.multi
+
+    celery multi start 10 -A proj -l info -Q:1-3 images, video -Q:4,5 data -Q default -L:4,5 debug
+
+### About the --app argument 关于--app参数
+
+--app参数指定Celery应用(就是那个Celery实例)使用, 其必须以 _模块.路径:属性_ 的格式书写
+
+但是当该参数尝试搜索应用实例的时候, 只有一个包名被赋予了这个参数, 这个参数也支持该快捷格式. 其会以下面的顺序取寻找所指定的包.  
+`--app=proj`  
+1. 一个叫 proj.app 的属性
+2. 一个叫 proj.celery 的属性
+3. 任何一个在proj模块中的Celery实例属性, 如果没有, 则开始在proj的子模块中寻找名为 proj.celery
+4. 一个叫 proj.celery.app 的属性
+5. 一个叫 proj.celery.celery 的属性
+6. 任何一个在proj.celery模块中的Celery实例属性
+
+## Calling Tasks 调用任务
+
+你可以调用一个任务使用`delay()`方法, 也可以使用更底层的`apply_async()`方法  
+接下来能让你指定执行选项, 比如运行时长(countdown), 队列应该被指定, 等等
+
+    add.apply_async((2, 2), queue="lopri", countdown=10)
+
+上面的例子, 任务将会被发送到一个名叫lopri的队列中, 而且这个任务在将此消息发出至少将执行10秒钟.
+
+直接调用任务该任务将会在当前进程中执行, 所以没有任何消息被发送.
+
+    add(2, 2)   # 直接执行而没有使用Celery
+
+`delay()`, `apply_async()`和 applying(\_\_call__)这三方法代表了Celery调用API, 这也可以用于签名.  更多 http://docs.celeryproject.org/en/latest/userguide/calling.html#guide-calling
+
+每一个任务的调用将会被给予一个唯一识别(一个UUID号), 这就是任务id.
+
+delay和apply_async方法返回一个AsyncResult实例, 其可以用来保持对任务执行状态的追踪. 但是对于这个你需要指定并开启结果存储后端, 这样执行的状态就会被存储得到某个地方.
+
+TODO: Results are diabled by default because...
