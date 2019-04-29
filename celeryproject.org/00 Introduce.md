@@ -12,6 +12,8 @@ Celery需要一个消息处理中介来发送和接收消息. RabbitMQ和Redis�
 
 ## Celery简述
 
+![pic](./structure.png)
+
 Celery 是 Python 语言实现的分布式队列服务, 除了支持即时任务, 还支持定时任务, Celery 有5个核心角色.  
 
 *1. Task*

@@ -24,10 +24,10 @@ http://docs.celeryproject.org/en/latest/getting-started/next-steps.html#next-ste
     from __future__ import absolute_import, unicode_literals   # 针对py2引入的未来特性, 使用绝对路径导入, 使用Unicode编码的字符
     from celery import Celery
 
-    app = ("proj",
-            broker="",   # 这里设置所使用的broker的url
-            backend="",  # 这里设置所使用的存储结果后端的url
-            include=["proj.tasks"]
+    app = Celery("proj",
+                 broker="",   # 这里设置所使用的broker的url
+                 backend="",  # 这里设置所使用的存储结果后端的url
+                 include=["proj.tasks"]
     )
 
     # 设置应用可选配置
@@ -40,7 +40,7 @@ http://docs.celeryproject.org/en/latest/getting-started/next-steps.html#next-ste
 
 后端用来保持对任务状态和结果的跟踪. 当结果被默认禁用时, 在这里我使用RPC结果存储后端, 因为我将演示如何检索结果. 你也可以使用不同的结果后端在你的应用中. 他们都有不同长处和短处. 如果你不需要结果, 那最好禁用他们. 结果也能在设置@task(ignore_result=True)的单个任务上被禁用.
 
-include参数是一个当worker开始的时候被导入的模块的列表. 你需要在这儿添加我们的tasks模块, 这样worker可以找到我们的人物们.
+include参数是一个当worker开始的时候被导入的模块的列表. 你需要在这儿添加我们的tasks模块, 这样worker可以找到我们的任务们.
 
 ### proj/tasks.py
 
@@ -160,4 +160,49 @@ _Queues_ 是一个worker消费的任务们的队列列表. worker能被告知消
 
 delay和apply_async方法返回一个AsyncResult实例, 其可以用来保持对任务执行状态的追踪. 但是对于这个你需要指定并开启结果存储后端, 这样执行的状态就会被存储得到某个地方.
 
-TODO: Results are diabled by default because...
+默认结果是被禁用的, 因为事实上其没有结果后端适合每一个应用, 所以根据各个后端的优缺点选择一个适合的. 对于大多数的任务保持返回值并不是有用的, 所以这是一个合理的默认处理. 也需要注意结果后端用来监控任务和workers不是有用的, 对于这个需求, Celery使用专门的事务消息 http://docs.celeryproject.org/en/latest/userguide/monitoring.html#guide-monitoring
+
+如果你配置了一个结果后端, 你可以从一个任务中取回一个返回值
+
+    res = add.delay(2, 2)
+    res.get(timeout=1)
+
+你可以查看任务的id通过id属性
+
+    res.id
+
+当任务抛出异常时, 你同样可以使用返回值来查看任务的traceback, 事实上默认result.get()将会传递任何的错误.
+
+如果你不想要查看异常的traceback, 你可以使用propagate参数, 这样就不会产生traceback, 而是一串描述错误的字符
+
+    res.get(propagate=False)
+
+在这种情况下, 其将会返回异常实例以取代原先的, 检查任务的成功执行或者失败, 可以在返回实例上使用相应的方法
+
+    res.failed()
+    res.successful()
+
+所以这个返回实例是怎么知道任务执行成功还是失败的呢? 其是通过产看任务的状态
+
+    res.state
+
+一个任务只能有一个状态, 但是会经理不同的阶段. 不同阶段的任务的状态如下
+
+    PENDING -> STARTED ->SUCCESS
+
+开始(started)状态是一个特殊的状态, 如果`task_track_started`设置启用的话, 其只被记录; 或者`@task(track_started=True)`选项被设置在了任务上.
+
+等待(pending)状态是一个不被记录的状态, 但是任何未知的任务id都是该状态的, 可以通过如下例子
+
+    from proj.celery import app
+    res = app.AsyncResult("这是一个不存在的id")
+    res.state   # 将会显示pending
+
+如果任务被重试, 这个阶段能变得更加复杂. 当一个任务被重试了两次, 其状态将会如下
+
+    PENDING -> STARTED -> RETRY -> STARTED -> RETRY -> STARTED -> SUCCESS
+
+Calling tasks is described in detail in the http://docs.celeryproject.org/en/latest/userguide/calling.html#guide-calling
+
+## Canvas: Designing Work-flows 设计工作流
+
