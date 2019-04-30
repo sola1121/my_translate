@@ -206,3 +206,56 @@ Calling tasks is described in detail in the http://docs.celeryproject.org/en/lat
 
 ## Canvas: Designing Work-flows 设计工作流
 
+你只需要学习如何使用已注册任务的delay方法调用一个任务, 但是有时候你可能想要传递任务调用的签名到别的进程中或者作为一个参数传递到另一个函数中. 对于此, Celery使用叫做signatures的.
+
+一个签名(signature)包含单个任务调用的参数们和执行选项们在一个方法中, 这样就能被传递到函数或甚至序列化并发送.
+
+你可以使用(2, 2)作为参数给add任务创建一个签名signature, 并倒计时10s
+
+    add.signature((2, 2), countdown=10)
+
+也可以使用快捷方式
+
+    add.s(2, 2)
+
+### And there's that calling API again ..  可以再次调用API
+
+Signature实例也支持调用API: 这意味着他们有delay和apply_async方法.
+
+但是这里有一点不同, signature也许已经指定了一个参数签名. add任务接收两个参数, 所以一个签名指定两个参数将生成一个完整的signature
+
+    s1 = add.s(2, 2)
+    res = s1.delay()
+    res.get()
+
+但是你同样可以制作一个不完整的signatures以生成partials
+
+    # incomplete partial: add(?, 2)
+    s2 = add.s(2)
+
+s2现在是一个partial signature, 需要另外的参数以完成他. 这可以通过在一次执行signature来完成他.
+
+    # resolves the partial: add(8, 2)
+    res = s2.delay(8)
+    res.get()
+
+上面我们加上了参数8, 和原先的被推迟已经存在的参数2组成了完整的add(8, 2)的signature
+
+关键字参数也能在之后被添上, 将会和已存在的关键字参数相合并, 但是新添加的参数会优先
+
+    s3 = add.s(2, 2, debug=True)
+    s3.delay(debug=False)   # 现在将debug改为了False
+
+如上述signatures支持调用API: 意味着
+
++ sig.apply_async(args=(), kwargs={}, **options)
+
+调用有可选的部分参数和部分关键字参数的signature. 也支持部分执行选项.
+
++ sig.delay(*args, **kwargs)
+
+apply_async的开始参数版本. 任何参数将会先发制人到参数到signature中, 关键字参数被合并到任何已存在的键中.
+
+所以所有这些看起来都挺有用的, 但是你能实际使用这些做什么? 接下来就需要介绍下canvas primitives...
+
+### The Primitives 图元
