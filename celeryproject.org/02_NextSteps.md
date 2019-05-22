@@ -259,3 +259,61 @@ apply_async的开始参数版本. 任何参数将会先发制人到参数到sign
 所以所有这些看起来都挺有用的, 但是你能实际使用这些做什么? 接下来就需要介绍下canvas primitives...
 
 ### The Primitives 图元
+
+group map chain starmap chord chunks  
+这些原语本身就是签名对象, 所以他们之间能有不同的组合方式来实现复杂的工作流.
+
+*注意* 这些示例检索结果, 所以为了能够运行这些示例, 你需要配置一个结果后端. 
+
+#### Groups
+
+一个group同时调用一系列的任务, 并返回一个专用的结果实例, 方便你以一个分组来检查结果, 也能按顺序拿到结果.
+
+    from celery import group
+    from proj.tasks import add
+
+    group(add.s(i, i) for i in xrange(10)) ().get()
+
+部分的分组
+
+    g = group(add.s(i) for i in xrange(10))
+    g(10).get()
+
+#### Chains
+
+任务可以被连接在一起, 这样一个任务的返回将可以依此的放入下一个任务作为参数执行.
+
+    from celery import chain
+    from proj.tasks import add, mul
+
+    chian(add.s(4,4)) | mul.s(8)().get())   # (4+4)*8
+
+或者一部分的链式
+
+    g = chain(add.s(4) | mul.s(8))   # (?+4)*8
+    g(4).get()
+
+链亦可以被这样写
+
+    (add.s(4,4) | mul.s(8)) ().get()
+
+#### Chords
+
+一个chord是一个带有回调的分组
+
+    from celery import chord
+    from proj.tasks import add, xsum
+
+    chord( (add.s(i,i) for i in xrange(10)), xsum.s()) ().get()
+
+一个链接到另一个任务的分组将会被自动转换为一个chord
+
+    (group(add.s(i, i) for i in xrange(10)) | xsum.s()) ().get()
+
+当这些图元都是signature类型的时候, 其可以被任意组合
+
+    upload_document.s(file) | group(apply_filter.s() for filter in filters)
+
+更多关于工作流 http://docs.celeryproject.org/en/latest/userguide/canvas.html#guide-canvas
+
+## Routing 路由
