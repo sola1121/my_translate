@@ -317,3 +317,32 @@ group map chain starmap chord chunks
 更多关于工作流 http://docs.celeryproject.org/en/latest/userguide/canvas.html#guide-canvas
 
 ## Routing 路由
+
+Celery支持所有由AMQP提供的路由设备, 但是它也支持简单的向命名了的队列中发送消息的路由
+
+task_routes设置通过名字使你能够路由任务并在一个地方集中管理
+
+    app.conf.update(
+        task_routes = {
+            "proj.tasks.add": {"queue": "hipri"},
+        },
+    )
+
+你也能在运行时指定apply_async的queue参数
+
+    from proj.tasks import add
+    add.apply_async((2,2), queue="hipri")
+
+在之后你可以穿开启一个worker从指定的队列通过celery worker -Q选项
+
+    celery -A proj worker -Q hipri
+
+你可以通过使用一个逗号分割的列表指定多个队列. 比如你可以从默认的队列和hipri队列开启一个worker消费者, 在这里默认的队列叫做celery
+
+    celery -A proj worker -Q hipri,celery
+
+队列的顺序不影响worker中的权重
+
+更多的路由, 包括完整的使用AMQP路由, http://docs.celeryproject.org/en/latest/userguide/routing.html#guide-routing
+
+## Remote Control 远程控制
