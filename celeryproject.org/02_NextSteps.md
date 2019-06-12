@@ -346,3 +346,59 @@ task_routes设置通过名字使你能够路由任务并在一个地方集中管
 更多的路由, 包括完整的使用AMQP路由, http://docs.celeryproject.org/en/latest/userguide/routing.html#guide-routing
 
 ## Remote Control 远程控制
+
+如果你正在使用RabbitMQ(AMQP), Redis或者Qpid作为broker, 你可以在运行时检查和控制worker.
+
+查看worker正在运行的任务
+
+    celery -A proj inspect active
+
+该功能使用广播实现, 所以在cluster(簇)中的每一个worker都会收到远程控制的命令.
+
+你也可以指定一个或多个worker来响应请求, 使用 `--destination`选项. 将会返回以逗号分割的worker主机的名字列表.
+
+    celery -A proj inspect active --destination=celery@example.com
+
+如果没有目的地, 每一个worker将会反应并回复请求.
+
+`celery inspect`命令不包含改变worker中的任何东西的命令, 其将只会现在worker中发生的事信息和统计.
+
+使用celery inspect --help获取获取更多关于检查命令的参数
+
+`celery control`命令中包含能够在worker运行时改变其的命令
+
+使用celery control --help获取更多关于控制的参数
+
+当事件开始执行时, 你可以开始事件转存来看worker正在做的事儿.
+
+    celery -A proj events --dump
+
+或者你能开始curses接口
+
+    celery -A proj events
+
+当你完成监控, 你可以再一次取消事件
+
+    celery -A proj control disable_events
+
+`celery status`命令也使用远程控制命令和展示在cluster(簇)中并在线的worker的列表
+
+    celery -A proj status
+
+更多的celery命令和监控 http://docs.celeryproject.org/en/latest/userguide/monitoring.html#guide-monitoring
+
+## Timezone 时区
+
+内部和消息中的所有时间和日期都使用UTC时间.
+
+当worker接收到一个消息, 比如, 有一个倒计时设置, 其会转换UTC时间到本地时间. 如果你想使用一个不同的时区而不是系统的, 你必须配置timezone设置
+
+    app.conf.timezone = "Europe/London"
+
+## Optimization 优化
+
+默认的配置没有对于吞吐量的优化, 其会尝试在许多短任务和少量长任务上保持平衡, 一个在吞吐量和公平调度折中.
+
+如果你有严格公平调度要求, 或想优化吞吐量, http://docs.celeryproject.org/en/latest/userguide/optimizing.html#guide-optimizing
+
+如果你正在使用RabbitMQ, 你可以安装librabbitmq模块, 这是一个由C实现的AMQP客户端 https://pypi.org/project/librabbitmq/
