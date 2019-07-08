@@ -6,7 +6,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import create_session
 from sqlalchemy import MetaData, Table, String, Integer
 
-
+# 数据库来自MySQL官方练习数据库, 雇员数据库employees
 db_engine = sqlalchemy.create_engine("mysql+pymysql://leimilia:leimilia@localhost/employees?charset=utf8mb4")
 
 # 普通的pymysql式的使用
