@@ -6,6 +6,12 @@
 
 [Python静态类型检查](https://realpython.com/python-type-checking/)
 
+[Python装饰器](https://realpython.com/primer-on-python-decorators/)
+
+[实现一个Python堆栈](https://realpython.com/how-to-implement-python-stack/)
+
+[Python数据库相关向导](https://realpython.com/tutorials/databases/)
+
 ## Django框架相关
 
 [在Django中使用Celery和Redis完成异步任务](https://stackabuse.com/asynchronous-tasks-in-django-with-redis-and-celery/)
