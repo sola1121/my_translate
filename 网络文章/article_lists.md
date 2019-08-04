@@ -12,6 +12,8 @@
 
 [使用Python测试](https://realpython.com/python-testing/)
 
+[python测试Mock](https://realpython.com/python-mock-library/)
+
 [理解Python的追溯功能](https://realpython.com/python-traceback/)
 
 ### Python网络框架框架相关
