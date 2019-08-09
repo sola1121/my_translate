@@ -8,6 +8,8 @@
 
 [Python装饰器](https://realpython.com/primer-on-python-decorators/)
 
+[Python继承与组合](https://realpython.com/inheritance-composition-python/)
+
 [实现一个Python堆栈](https://realpython.com/how-to-implement-python-stack/)
 
 [使用Python测试](https://realpython.com/python-testing/)
@@ -22,7 +24,11 @@
 
 [Django的重定向](https://realpython.com/django-redirects/)
 
+[使用Django中的admin管理用户](https://realpython.com/manage-users-in-django-admin/)
+
 [在不停机的前提下在Django中创建索引](https://realpython.com/create-django-index-without-downtime/)
+
+[使用假数据和工厂提高你的Django测试](https://hacksoft.blog/improve-your-tests-django-fakes-and-factories/)
 
 ### Python数据分析处理与机器学习
 
