@@ -40,6 +40,10 @@
 
 [Python使用redis](https://realpython.com/python-redis/)
 
+###Python练手
+
+[做一些py项目]https://realpython.com/intermediate-python-project-ideas/()
+
 ## GO语言相关
 
 ## JavaScript语言相关
